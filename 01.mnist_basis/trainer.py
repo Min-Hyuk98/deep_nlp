@@ -19,15 +19,17 @@ class Trainer():
         self.model.train()
 
         # Shuffle before begin.
-        indices = torch.randperm(x.size(0), device=x.device)
+        indices = torch.randperm(x.size(0), device=x.device) # 0 ~ (bs-1) 의 랜덤 인덱스 만들
         x = torch.index_select(x, dim=0, index=indices).split(config.batch_size, dim=0)
         y = torch.index_select(y, dim=0, index=indices).split(config.batch_size, dim=0)
+        # torch.index_select --> x,y(독립/종속변수 모두) 같은 패턴으로 섞어줌
 
         total_loss = 0
 
         for i, (x_i, y_i) in enumerate(zip(x, y)):
             y_hat_i = self.model(x_i)
             loss_i = self.crit(y_hat_i, y_i.squeeze())
+            # squeeze() --> (bs, 1)을 (bs, )로 바꿔
 
             # Initialize the gradients of the model.
             self.optimizer.zero_grad()
@@ -40,7 +42,7 @@ class Trainer():
 
             # Don't forget to detach to prevent memory leak.
             total_loss += float(loss_i)
-
+            # loss_i는 텐서이므로, 모든 결과가 저장되어있다 -> float으로 바꿔줘야 메모리 덜먹음
         return total_loss / len(x)
 
     def _validate(self, x, y, config):
@@ -67,6 +69,7 @@ class Trainer():
 
             return total_loss / len(x)
 
+    # train_data.shape == [(batch_size, 784), (batch_size, 1)] == valid_data.shape
     def train(self, train_data, valid_data, config):
         lowest_loss = np.inf
         best_model = None

@@ -35,14 +35,15 @@ def main(config):
 
     train_cnt = int(x.size(0) * config.train_ratio)
     valid_cnt = x.size(0) - train_cnt
-
+    # x.shape == (dataset, 784)
     # Shuffle dataset to split into train/valid set.
     indices = torch.randperm(x.size(0))
     x = torch.index_select(
         x,
-        dim=0,
+        dim=0, # (dataset, 784)중 dataset을 의미
         index=indices
     ).to(device).split([train_cnt, valid_cnt], dim=0)
+    # x.shape == [(train_cnt, 784), (valid_cnt, 784)]
     y = torch.index_select(
         y,
         dim=0,
